@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogOut } from "lucide-react";
+import "./cssfile/Navbar.css";
 
 const Navbar = () => {
   const { authUser } = useAuthStore();
@@ -9,59 +10,40 @@ const Navbar = () => {
     try {
       const res = await fetch("http://localhost:5000/api/auth/logout", {
         method: "POST",
-        credentials: "include", 
+        credentials: "include",
       });
 
       const result = await res.json();
       console.log("Logged out:", result);
-
-      // optional: reload or reset auth store
-      window.location.href = "/login"; 
+      window.location.href = "/login";
     } catch (error) {
       console.log("Error while logging out:", error);
     }
   };
 
   return (
-    <nav style={{ display: "flex", gap: "1rem", padding: "1rem" }}>
-      <NavLink
-        to="/"
-        className={({ isActive }) => (isActive ? "focus" : "")}
-      >
-        Home
-      </NavLink>
-      <NavLink
-        to="/login"
-        className={({ isActive }) => (isActive ? "focus" : "")}
-      >
-        Login
-      </NavLink>
-      <NavLink
-        to="/signup"
-        className={({ isActive }) => (isActive ? "focus" : "")}
-      >
-        Signup
-      </NavLink>
-      <NavLink
-        to="/createPost"
-        className={({ isActive }) => (isActive ? "focus" : "")}
-      >
-        Create Post
-      </NavLink>
+    <nav className="nav-root">
+      <NavLink to="/" className="nav-logo"> MIRAGE </NavLink>
 
-      <NavLink
-        to="/myPosts"
-        className={({ isActive }) => (isActive ? "focus" : "")}
-      >
-        My Posts
-      </NavLink>
+      <div className="nav-links">
+        {authUser && authUser.user_type=="host" && <NavLink to="/createPost">Create Post</NavLink>}
+        {authUser && authUser.user_type=="host" && <NavLink to="/myPosts">My Posts</NavLink>}
+        {authUser && <NavLink to="Profile">Profile</NavLink>}
+      </div>
 
-      {authUser && (
-        <button onClick={onClickHandler} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <LogOut />
-          <span>Logout</span>
-        </button>
-      )}
+      <div className="nav-auth">
+        {authUser ? (
+          <button className="nav-logout" onClick={onClickHandler}>
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        ) : (
+          <>
+            <NavLink to="/login" className="nav-login">Login</NavLink>
+            <NavLink to="/signup" className="nav-signup">Sign Up</NavLink>
+          </>
+        )}
+      </div>
     </nav>
   );
 };

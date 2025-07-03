@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import './cssfile/signup2.css';
+import './cssfile/signup.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
@@ -89,7 +89,7 @@ const Signup = () => {
     };
 
     return (
-        <>
+        <div className="signup-page">
             <ToastContainer position="top-right" autoClose={6000} />
 
             {redirectToLogin && <Navigate to="/login" replace />}
@@ -157,7 +157,7 @@ const Signup = () => {
                                 value="guest"
                                 name="user_type"
                                 onChange={(e) => setUser_type(e.target.value)}
-                            /> User
+                            /> Guest
                         </label>
                         <label>
                             <input
@@ -178,7 +178,7 @@ const Signup = () => {
                     </p>
                 </form>
             </div>
-        </>
+        </div>
     );
 };
 

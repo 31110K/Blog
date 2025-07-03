@@ -53,7 +53,7 @@ const Login = () => {
       console.log("error while verifying data", error);
       toast.error("Something went wrong.");
     } finally{
-        isLoggingIn = false;
+      setLoggingIn(false);
     }
 
     psswrd.current.value = "";
@@ -124,7 +124,7 @@ const Login = () => {
             </div>
 
             <button type="submit" className="login-button">
-              {loggingIn ? "Logging..." : "Loging"}
+              {loggingIn ? "Logging In..." : "Login"}
             </button>
           </form>
         </div>

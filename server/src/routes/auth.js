@@ -116,4 +116,26 @@ auth_router.get('/check', protectRoute, (req, res) => {
     }
 });
 
+auth_router.put('/updateProfile', protectRoute, async (req, res) => {
+    try {
+        const { name, email, phone , profilePic, bio } = req.body;
+        // Validate input
+        if (!name || !email || !phone) {
+            return res.status(400).json({ success : false , message: "name , email and phone fields are required" });
+        }
+
+        // Find user and update
+        const user = await Users.findByIdAndUpdate(req.user._id, { name, email, phone ,profilePic,bio}, { new: true });
+
+        if (!user) {
+            return res.status(404).json({ success : false , message: "User not found" });
+        }
+
+        res.status(200).json({ success: true, message: "Profile updated successfully", user });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({success: false , message: "Internal server error" });
+    }
+});
+
 export default auth_router;

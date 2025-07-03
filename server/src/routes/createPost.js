@@ -8,14 +8,22 @@ createPost_router.post('/createPost', protectRoute, async (req, res) => {
     try {
       const {
         author, title, content, excerpt,
-        featuredImageUrl, featuredImageCredit,
+        featuredImage,
         categories, tags, status, publishedAt,
-        scheduledPublish, visibility,
+        scheduledAt, 
+        visibility,
         metaTitle, metaDescription, isCommentable
       } = req.body;
+      console.log("Request body:", req.body);
 
-      console.log("abcd",tags);
-  
+      let featuredImageUrl = featuredImage?.url || '';
+      let featuredImageCredit = featuredImage?.credit || '';
+
+      // If the featuredImageUrl is not a valid http(s) url, do not save it
+      if (featuredImageUrl && !/^https?:\/\//.test(featuredImageUrl)) {
+        featuredImageUrl = '';
+      }
+
       const post = new Post({
         author,
         title,
@@ -29,12 +37,14 @@ createPost_router.post('/createPost', protectRoute, async (req, res) => {
         tags,
         status,
         publishedAt,
-        scheduledPublish,
+        scheduledAt,
         visibility,
         metaTitle,
         metaDescription,
         isCommentable
       });
+
+      
   
       await post.save();
   
@@ -42,7 +52,6 @@ createPost_router.post('/createPost', protectRoute, async (req, res) => {
   
     } catch (error) {
       if (error instanceof mongoose.Error.ValidationError) {
-        // Extract messages from all fields
         const messages = Object.values(error.errors).map(err => err.message);
         return res.status(400).json({ success: false, errors: messages });
       }

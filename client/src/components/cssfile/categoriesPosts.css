@@ -1,0 +1,235 @@
+.categories-posts-container {
+  height: 100%;
+  min-height: unset;
+  background-color: #F5F5F5;
+  font-family: Arial, sans-serif;
+}
+
+.categories-posts-nav {
+  background-color: #FFFFFF;
+  border-top: 1px solid #a5a11e;
+  border-bottom: 1px solid #a0ae35;
+}
+
+.categories-posts-nav-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.categories-posts-nav-buttons {
+  display: flex;
+  overflow-x: auto;
+}
+
+.categories-posts-nav-button {
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  color: #757575;
+}
+
+.categories-posts-nav-button:hover {
+  color: #424242;
+  background-color: #F5F5F5;
+}
+
+.categories-posts-nav-button-active {
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 2px solid #00BCD4;
+  background-color: #E0F7FA;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  color: #00BCD4;
+}
+
+.categories-posts-main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.categories-posts-no-posts-message {
+  text-align: center;
+  padding: 48px 0;
+  color: #757575;
+}
+
+.categories-posts-grid-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+}
+
+.categories-posts-featured-post-container {
+  background-color: #FFFFFF;
+  overflow: hidden;
+}
+
+.categories-posts-featured-image-container {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+}
+
+.categories-posts-featured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+
+
+.categories-posts-featured-content {
+  padding: 2px;
+}
+
+.categories-posts-featured-title {
+  font-size: 15px;
+  font-weight: bold;
+  color: #77831b;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.categories-posts-featured-meta {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #757575;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categories-posts-featured-excerpt {
+  color: #616161;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.categories-posts-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.categories-posts-sidebar-post {
+  background-color: #FFFFFF;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.categories-posts-sidebar-post:hover {
+  background-color: #F5F5F5;
+}
+
+.categories-posts-sidebar-post-content {
+  display: flex;
+  gap: 16px;
+}
+
+.categories-posts-sidebar-image {
+  width: 80px;
+  height: 64px;
+  background-color: #E0E0E0;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.categories-posts-sidebar-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.categories-posts-sidebar-text-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.categories-posts-sidebar-title {
+  font-weight: bold;
+  color: #212121;
+  font-size: 14px;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.categories-posts-sidebar-meta {
+  font-size: 12px;
+  color: #757575;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.categories-posts-star-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.categories-posts-star {
+  width: 12px;
+  height: 12px;
+}
+
+.categories-posts-category-tag {
+  color: #00BCD4;
+  font-weight: 500;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .categories-posts-grid-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .categories-posts-container {
+    margin-right: 30px;
+    margin-bottom: 40px;;
+  }
+  
+  .categories-posts-featured-title {
+    font-size: 15px;
+  }
+  
+  .categories-posts-nav-button,
+  .categories-posts-nav-button-active {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1200px) {
+  
+  .categories-posts-featured-meta {
+    font-size: 11px;;
+  }
+  
+  .categories-posts-featured-title {
+    font-size: 13px;
+  }
+
+}

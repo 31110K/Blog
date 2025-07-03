@@ -1,50 +1,104 @@
-import React, { useState, useRef } from "react";
-import "./cssfile/createPost.css";
-import JoditEditor from "jodit-react";
+import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { toast, ToastContainer } from "react-toastify";
 import { useAuthStore } from "../store/useAuthStore.js";
-import { toast } from "react-toastify";
-import { ToastContainer } from "react-toastify";
+import JoditEditor from "jodit-react";
+
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
+
 import "react-toastify/dist/ReactToastify.css";
 
-const CreatePost = () => {
+const EditPost = () => {
+  const { postId } = useParams();
   const { authUser } = useAuthStore();
-  const editorRef = useRef(null);
+
+  const [post, setPost] = useState(null);
   const [content, setContent] = useState("");
-  const [title, setTitle] = useState("");
-  const [excerpt, setExcerpt] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageCredit, setImageCredit] = useState("");
   const [status, setStatus] = useState("publish");
   const [visibility, setVisibility] = useState("public");
   const [schedulePublish, setSchedulePublish] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [commentable, setCommentable] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSchedule, setIsSchedule] = useState(false);
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageCredit, setImageCredit] = useState("");
   const [tags, setTags] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
-  const [commentable, setCommentable] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDraft, SetIsDraft] = useState(false);
-  const [isSchedule, SetIsSchedule] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const editorRef = useRef(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/host/getPost/${postId}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }
+        );
+
+        const result = await res.json();
+        if (result.success) {
+          const data = result.data;
+          setPost(data);
+          setContent(data.content || "");
+          setStatus(data.status || "publish");
+          setVisibility(data.visibility || "public");
+          setSchedulePublish(data.scheduledAt || null);
+          setCategories(data.categories || []);
+          setCommentable(data.isCommentable ?? true);
+          setIsSchedule(data.status === "schedule");
+        } else {
+          toast.error(result.message || "Failed to fetch post.");
+        }
+      } catch (error) {
+        toast.error("Internal server error");
+        console.error("Fetch error:", error);
+      }
+    };
+
+    if (postId) fetchPost();
+  }, [postId]);
+
+  useEffect(() => {
+    if (post) {
+      setTitle(post.title || "");
+      setExcerpt(post.excerpt || "");
+      setImageUrl(post.featuredImage?.url || "");
+      setImageCredit(post.featuredImage?.credit || "");
+      setTags(post.tags?.join(", ") || "");
+      setMetaTitle(post.metaTitle || "");
+      setMetaDescription(post.metaDescription || "");
+    }
+  }, [post]);
+
+  const editPostHandler = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsEditing(true);
 
     let publishedAt;
     let scheduledAt;
-    if (status === "publish") {
-      publishedAt = new Date();
-      scheduledAt = null;
-    } else if (status === "schedule") {
-      publishedAt = null;
-      scheduledAt = schedulePublish;
+    if(status==="publish"){
+      publishedAt= new Date();
+      scheduledAt= null;
+    } else if(status==="schedule"){
+      publishedAt= null;
+      scheduledAt= schedulePublish;
     } else {
-      publishedAt = null;
-      scheduledAt = null;
+      publishedAt= null;
+      scheduledAt= null;
     }
 
-    const postDetail = {
-      author: authUser._id,
+    const updatedPost = {
+      author: authUser?._id,
       title,
       excerpt,
       content,
@@ -57,65 +111,51 @@ const CreatePost = () => {
       publishedAt,
       scheduledAt,
       categories,
-      tags: tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
       metaTitle,
       metaDescription,
       isCommentable: commentable,
     };
 
-    const resetForm = () => {
-      setTitle("");
-      setExcerpt("");
-      setTags("");
-      setMetaTitle("");
-      setMetaDescription("");
-      setContent("");
-      setStatus("draft");
-      SetIsDraft(true);
-      setVisibility("public");
-      setSchedulePublish(null);
-      setCategories([]);
-      setCommentable(true);
-      setImageUrl("");
-      setImageCredit("");
-    };
-
     try {
-      console.log("Posting blog with details:", postDetail);
-      const res = await fetch("http://localhost:5000/api/host/createPost", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(postDetail),
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/host/updatePost/${postId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(updatedPost),
+        }
+      );
 
       const result = await res.json();
-      console.log("response:", result);
 
       if (result.success) {
-        if (isDraft) {
-          toast(" Blog Successfully Saved!");
-        } else {
-          toast.success(" Blog Successfully Posted!");
-        }
-        resetForm();
+        setPost(result.data);
+        toast.success("Post updated successfully");
       } else if (result.errors && Array.isArray(result.errors)) {
-        result.errors.forEach((err) => toast.error(`❌ ${err}`));
+        result.errors.forEach((msg) => toast.error(msg));
       } else {
-        toast.error(`❌ ${result.message || "Posting failed!"}`);
+        toast.error(result.message || "Failed to update post");
       }
     } catch (error) {
-      console.error("Error while posting failed:", error);
-      toast.error("❌ Something went wrong while posting the blog.");
+      console.error("Update error:", error);
+      toast.error("Internal server error");
     } finally {
-      setIsSubmitting(false);
+      setIsEditing(false);
     }
   };
+
+  if (!post) {
+    return (
+      <div className="centered-loader">
+        <div style={{ width: "80%", maxWidth: 1800 }}>
+          <Skeleton height={180} width="80%" />
+          <Skeleton height={30} count={10} style={{ marginTop: 20 }} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -123,20 +163,20 @@ const CreatePost = () => {
       <div className="page">
         <main className="main">
           <header className="header">
-            <h1 className="title">Create New Blog Post</h1>
+            <h1 className="title">Edit Blog Post</h1>
           </header>
 
           <div className="user-info">
             <div className="user-avatar">
-              {authUser?.name ? authUser.name.charAt(0).toUpperCase() : "U"}
+              {authUser?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <div className="user-details">
-              <h3>{authUser?.name || "Guest User"}</h3>
+              <h3>{authUser?.name || "Guest"}</h3>
               <p>Author</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={editPostHandler}>
             <div className="post-form layout-split">
               <section className="post-content">
                 <div className="card title-excerpt-card">
@@ -144,18 +184,16 @@ const CreatePost = () => {
                     <label>Title</label>
                     <input
                       type="text"
-                      placeholder="Post title..."
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      onChange={e => setTitle(e.target.value)}
                     />
                   </div>
                   <div className="input-group">
                     <label>Excerpt</label>
                     <textarea
                       rows="3"
-                      placeholder="Brief summary..."
                       value={excerpt}
-                      onChange={(e) => setExcerpt(e.target.value)}
+                      onChange={e => setExcerpt(e.target.value)}
                     ></textarea>
                   </div>
                 </div>
@@ -193,6 +231,7 @@ const CreatePost = () => {
                           },
                         }}
                       />
+                      
                     </div>
                   </div>
                 </div>
@@ -213,7 +252,7 @@ const CreatePost = () => {
                     <input
                       type="url"
                       value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
+                      onChange={e => setImageUrl(e.target.value)}
                       pattern="https?://.+\.(jpg|jpeg|png|gif|webp|svg)"
                       title="Please enter a direct image URL ending in .jpg, .jpeg, .png, .gif, .webp, or .svg"
                     />
@@ -221,7 +260,7 @@ const CreatePost = () => {
                       type="text"
                       placeholder="Image credit/source"
                       value={imageCredit}
-                      onChange={(e) => setImageCredit(e.target.value)}
+                      onChange={e => setImageCredit(e.target.value)}
                     />
                   </div>
 
@@ -239,16 +278,15 @@ const CreatePost = () => {
                   <div className="input-group">
                     <label>Status</label>
                     <select
-                      name="status"
                       value={status}
                       onChange={(e) => {
                         const selected = e.target.value;
                         setStatus(selected);
-                        SetIsDraft(selected === "draft");
-                        SetIsSchedule(selected === "schedule");
+                        setIsSchedule(selected === "schedule");
                       }}
                     >
                       <option value="draft">Draft</option>
+
                       <option value="publish">Publish</option>
                       <option value="schedule">Schedule</option>
                     </select>
@@ -292,9 +330,8 @@ const CreatePost = () => {
                     <label>Tags</label>
                     <input
                       type="text"
-                      placeholder="tag1, tag2, tag3"
                       value={tags}
-                      onChange={(e) => setTags(e.target.value)}
+                      onChange={e => setTags(e.target.value)}
                     />
                   </div>
 
@@ -302,9 +339,8 @@ const CreatePost = () => {
                     <label>Meta Title</label>
                     <input
                       type="text"
-                      placeholder="SEO optimized title"
                       value={metaTitle}
-                      onChange={(e) => setMetaTitle(e.target.value)}
+                      onChange={e => setMetaTitle(e.target.value)}
                     />
                   </div>
 
@@ -312,9 +348,8 @@ const CreatePost = () => {
                     <label>Meta Description</label>
                     <textarea
                       rows="3"
-                      placeholder="SEO description"
                       value={metaDescription}
-                      onChange={(e) => setMetaDescription(e.target.value)}
+                      onChange={e => setMetaDescription(e.target.value)}
                     ></textarea>
                   </div>
 
@@ -322,7 +357,7 @@ const CreatePost = () => {
                     <input
                       type="checkbox"
                       id="isCommentable"
-                      defaultChecked
+                      checked={commentable}
                       onChange={(e) => setCommentable(e.target.checked)}
                     />
                     <label htmlFor="isCommentable">Allow Comments</label>
@@ -332,15 +367,9 @@ const CreatePost = () => {
             </div>
 
             <div className="button-group">
-              {isDraft ? (
-                <button type="submit" className="btn-secondary">
-                  {isSubmitting ? "Saving..." : "Save as Draft"}
-                </button>
-              ) : (
-                <button type="submit" className="btn-primary">
-                  {isSubmitting ? "Posting..." : "Post"}
-                </button>
-              )}
+              <button type="submit" className="btn-secondary">
+                {isEditing ? "Updating..." : "Update Post"}
+              </button>
             </div>
           </form>
         </main>
@@ -349,4 +378,4 @@ const CreatePost = () => {
   );
 };
 
-export default CreatePost;
+export default EditPost;

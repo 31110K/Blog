@@ -8,6 +8,9 @@ import session from 'express-session';
 import connectMongoDBSession from 'connect-mongodb-session';
 import uploadRouter from "./lib/uploadCloudinary.js";
 import myPosts_router from "./routes/myPosts.js";
+import viewPost_router from "./routes/viewPost.js";
+import home_router from "./routes/home.js";  
+
 
 dotenv.config();
 
@@ -46,10 +49,12 @@ app.use(session({
   saveUninitialized: true
 }));
 
+app.use('/api/home', home_router);
 app.use('/api/auth', auth_router);
 app.use('/api/host', createPost_router);
 app.use('/api/host', myPosts_router);
 app.use('/api/host', uploadRouter);
+app.use('/api', viewPost_router);
 
 const PORT = process.env.PORT;
 mongoose.connect("mongodb+srv://root:root@alokyadav.oameudm.mongodb.net/BLOGGING?retryWrites=true&w=majority&appName=ALOKYADAV")

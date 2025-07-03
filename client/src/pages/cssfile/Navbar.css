@@ -1,0 +1,129 @@
+.nav-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #e5e5e5;
+  padding: 12px 32px;
+  font-family: system-ui, -apple-system, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: #000;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.nav-logo::before {
+  font-size: 20px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 48px;
+  align-items: center;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: #000;
+}
+
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-login {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nav-login::before {
+  content: "▶ ";
+}
+
+.nav-login::after {
+  content: " ◀";
+}
+
+.nav-login:hover {
+  color: #000;
+}
+
+.nav-signup {
+  background-color: #2d2d2d;
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  transition: opacity 0.2s ease;
+}
+
+.nav-signup::before {
+  content: "▶ ";
+}
+
+.nav-signup:hover {
+  opacity: 0.9;
+}
+
+.nav-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #2d2d2d;
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: opacity 0.2s ease;
+}
+
+.nav-logout:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .nav-root {
+    padding: 12px 16px;
+  }
+  
+  .nav-links {
+    gap: 24px;
+  }
+  
+  .nav-auth {
+    gap: 12px;
+  }
+}

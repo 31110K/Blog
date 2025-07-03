@@ -17,6 +17,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 uploadRouter.post("/upload", upload.single("image"), async (req, res) => {
+  
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image file provided" });

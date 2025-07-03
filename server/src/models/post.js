@@ -2,15 +2,21 @@ import mongoose from 'mongoose';
 import slugify from 'slugify';
 
 const commentSchema = new mongoose.Schema({
-  user_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  commenter: {
+  commenter_name: {
     type: String,
     required: true,
     trim: true
+  },
+  commenter_email:{
+    type: String,
+    required: true,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/.test(v);
+      },
+      message: props => `${props.value} is not a valid email address!`
+    }
   },
   comment: {
     type: String,
@@ -24,64 +30,65 @@ const commentSchema = new mongoose.Schema({
 }, { _id: false });
 
 const postSchema = new mongoose.Schema({
-  
   slug: {
     type: String,
     unique: true
   },
 
   title: {
-    type: String,
-    trim: true,
-    maxlength: [100, 'Title cannot exceed 100 characters'],
-    required: [
-      function () {
-        return this.status === 'publish';
-      },
-      'A post must have a title when publishing'
-    ]
-  },
+  type: String,
+  trim: true,
+  maxlength: [100, 'Title cannot exceed 100 characters'],
+  minlength: [5, 'Title must be at least 5 characters'],
+},
 
   content: {
-    type: String,
-    validate: {
+  type: String,
+  trim: true,
+  validate: [
+    {
       validator: function (val) {
-        if (this.status === 'publish') {
-          return val && val.length >= 100;
+        // If publishing or scheduling, content must exist
+        if (this.status === 'publish' || this.status === 'schedule') {
+          return typeof val === 'string' && val.trim().length > 0;
         }
         return true;
       },
-      message: 'Content must be at least 100 characters to publish'
+      message: 'Post content is required when publishing'
     },
-    required: [
-      function () {
-        return this.status === 'publish';
+    {
+      validator: function (val) {
+        // If publishing or scheduling, content must be at least 100 characters
+        if (this.status === 'publish' || this.status === 'schedule') {
+          return typeof val === 'string' && val.trim().length >= 100;
+        }
+        return true;
       },
-      'Post content is required when publishing'
-    ]
-  },
+      message: 'Post content must be at least 100 characters to publish'
+    }
+  ]
+},
+
 
   excerpt: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: function (val) {
-        if (this.status === 'publish') {
-          return val && val.length >= 100;
-        }
-        return true;
-      },
-      message: 'Post excerpt must be less than 100 characters to publish'
+  type: String,
+  trim: true,
+  validate: {
+    validator: function (val) {
+      if (this.status === 'publish' || this.status === 'schedule') {
+        return typeof val === 'string' && val.trim().length <= 400;
+      }
+      return true;
     },
-    required: [
-      function () {
-        return this.status === 'publish';
-      },
-      'Post excerpt is required when publishing'
-    ]
+    message: function (props) {
+      if (!props.value || props.value.trim().length === 0) {
+        return 'Post excerpt is required when publishing';
+      }
+      return 'Post excerpt must be at most 400 characters to publish';
+    }
+  }
   },
 
-  // Media
   featuredImage: {
     url: String,
     credit: {
@@ -90,17 +97,15 @@ const postSchema = new mongoose.Schema({
     }
   },
 
-  // Authorship
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Users',
     required: true
   },
 
-  // Categorization
   categories: [{
     type: String,
-    enum: ['Technology', 'Travel', 'Food', 'Lifestyle', 'Business'],
+    enum: ['Technology', 'Travel', 'Food', 'Lifestyle', 'Business' ,"ArtDesign"],
     trim: true
   }],
 
@@ -110,31 +115,33 @@ const postSchema = new mongoose.Schema({
     lowercase: true
   }],
 
-  // Status & Visibility
   status: {
     type: String,
     enum: ['draft', 'publish', 'archive', 'schedule'],
     default: 'publish'
   },
+
   publishedAt: {
     type: Date,
     default: null
   },
+
   scheduledAt: {
     type: Date,
     default: null
   },
+
   visibility: {
     type: String,
     enum: ['public', 'members-only'],
     default: 'public'
   },
 
-  // SEO
   metaTitle: {
     type: String,
     trim: true
   },
+
   metaDescription: {
     type: String,
     trim: true
@@ -152,31 +159,27 @@ const postSchema = new mongoose.Schema({
 
   comments: [commentSchema]
 
- }, 
- { timestamps: true }
-); 
+}, { timestamps: true });
 
-
-// Pre-save slug generation (unchanged)
-postSchema.pre('save', async function(next) {
+postSchema.pre('save', async function (next) {
   if (this.isModified('title')) {
-    let slug = slugify(this.title, { 
-      lower: true, 
+    let slug = slugify(this.title, {
+      lower: true,
       strict: true,
       remove: /[*+~.()'"!:@]/g
     });
-    
+
     const slugRegEx = new RegExp(`^${slug}((-[0-9]+)?)$`, 'i');
     const postsWithSlug = await this.constructor.find({ slug: slugRegEx });
-    
+
     if (postsWithSlug.length > 0) {
       slug = `${slug}-${postsWithSlug.length + 1}`;
     }
-    
+
     this.slug = slug;
   }
-  next();
+  
 });
 
-const Post = mongoose.model("Post", postSchema);
+const Post = mongoose.model('Post', postSchema);
 export default Post;
