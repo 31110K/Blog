@@ -15,26 +15,30 @@ auth_router.post('/login', async (req, res) => {
     try {
         const user = await Users.findOne({ email });
 
-        if (!user) {
-            return res.status(400).json({ message: "Wrong Credentials" });
-        }
+            console.log("[LOGIN] User found:", user);
+            if (!user) {
+                console.log("[LOGIN] No user found with email:", email);
+                return res.status(400).json({ message: "Wrong Credentials" });
+            }
 
         const matches = await bcrypt.compare(password, user.password);
 
-        if (!matches) {
-            console.log("password is incorrect");
-            return res.status(400).json({ message: "Wrong Credentials" });
-        }
+            console.log("[LOGIN] Password match:", matches);
+            if (!matches) {
+                console.log("[LOGIN] Password is incorrect for user:", email);
+                return res.status(400).json({ message: "Wrong Credentials" });
+            }
 
         // ✅ Store only userId in session
         req.session.isLoggedIn = true;
         req.session.userId = user._id;
 
-        res.status(200).json({ success: true, message: "Login successful" });
+            console.log("[LOGIN] Login successful for user:", email);
+            res.status(200).json({ success: true, message: "Login successful" });
 
     } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ message: "Internal server error" });
+            console.error("[LOGIN] Login error:", error);
+            res.status(500).json({ message: "Internal server error" });
     }
 });
 
@@ -83,26 +87,30 @@ auth_router.post('/signup',
         .isIn(['guest', 'host']).withMessage("Invalid user type"),
 
     async (req, res) => {
-        try {
-            console.log(req.method, req.url);
+            try {
+                console.log("[SIGNUP] Method:", req.method, "URL:", req.url);
+                console.log("[SIGNUP] Body:", req.body);
 
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
+                    console.log("[SIGNUP] Validation errors:", errors.array());
+                    return res.status(400).json({ errors: errors.array() });
             }
 
             const { name, email, phone, password, user_type } = req.body;
 
             const hashedPassword = await bcrypt.hash(password, 12);
             const user = new Users({ name, email, phone, password: hashedPassword, user_type });
+                console.log("[SIGNUP] New user object:", user);
 
             await user.save();
+                console.log("[SIGNUP] User saved successfully");
 
             return res.status(201).json({ success: true, message: "Signup successful" });
 
         } catch (error) {
-            console.error("Signup Error:", error);
-            return res.status(500).json({ message: "Internal Server Error" });
+                console.error("[SIGNUP] Signup Error:", error);
+                return res.status(500).json({ message: "Internal Server Error" });
         }
     }
 );
