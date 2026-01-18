@@ -212,11 +212,10 @@ const EditPost = () => {
                             insertImageAsBase64URI: false,
                             url: "http://localhost:5000/api/host/upload",
                             format: "json",
-                            filesVariableName: "image",
                             withCredentials: true,
+                            filesVariableName: "image", // <--- add this line
                             headers: {
                               Accept: "application/json",
-                              "Content-Type": "multipart/form-data",
                             },
                           },
                           allowDragAndDropFileToEditor: true,

@@ -37,7 +37,7 @@ uploadRouter.post("/upload", upload.single("image"), async (req, res) => {
     };
 
     const result = await streamUpload(req.file.buffer);
-    res.status(200).json({ success: true, url: result.secure_url });
+    res.status(200).json({ success: true, files: [{ url: result.secure_url }] });
   } catch (err) {
     console.error("Upload failed:", err);
     res.status(500).json({ success: false, error: "Upload failed" });

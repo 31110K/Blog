@@ -56,7 +56,7 @@ app.use('/api/host', myPosts_router);
 app.use('/api/host', uploadRouter);
 app.use('/api', viewPost_router);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001;
 mongoose.connect("mongodb+srv://root:root@alokyadav.oameudm.mongodb.net/BLOGGING?retryWrites=true&w=majority&appName=ALOKYADAV")
   .then(() => {
     console.log("Connected to Mongoose");
