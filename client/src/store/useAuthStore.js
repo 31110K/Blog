@@ -9,7 +9,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isCheckingAuth: true });
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/check", {
+      const res = await fetch("https://blogging-82kn.onrender.com/api/auth/check", {
         credentials: 'include',
       });
 

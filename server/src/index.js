@@ -20,9 +20,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: [    
-      "https://blogging-ruby-alpha.vercel.app" ,
-      "http://localhost:5173"
+    origin: [
+      "https://blogging-ruby-alpha.vercel.app"
     ],
     credentials: true,
   })
@@ -46,8 +45,9 @@ app.use(session({
   secret: 'this is a secret',
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    secure: true, // cookie only sent over HTTPS
-    sameSite: "none" // allow cross-site cookies
+    secure: true,
+    sameSite: "none",
+    domain: "blogging-ruby-alpha.vercel.app"
   },
   store: store,
   resave: true,
