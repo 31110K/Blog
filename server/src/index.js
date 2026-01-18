@@ -20,9 +20,9 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://blogging-ruby-alpha.vercel.app"
+    origin: [    
+      "https://blogging-ruby-alpha.vercel.app" ,
+      "http://localhost:5173"
     ],
     credentials: true,
   })
@@ -45,7 +45,9 @@ app.use(session({
   // FIXME: Use a real secret from your .env file
   secret: 'this is a secret',
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    secure: true, // cookie only sent over HTTPS
+    sameSite: "none" // allow cross-site cookies
   },
   store: store,
   resave: true,
