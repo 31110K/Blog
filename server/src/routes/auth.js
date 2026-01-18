@@ -117,6 +117,10 @@ auth_router.post('/signup',
 
 auth_router.get('/check', protectRoute, (req, res) => {
     try {
+        console.log("[CHECK] Session:", req.session);
+        console.log("[CHECK] isLoggedIn:", req.session?.isLoggedIn);
+        console.log("[CHECK] userId:", req.session?.userId);
+        console.log("[CHECK] user:", req.user);
         res.status(200).json(req.user); // user is attached by middleware
     } catch (error) {
         console.log("error in check auth controller", error);
