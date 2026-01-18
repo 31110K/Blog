@@ -116,6 +116,7 @@ auth_router.post('/signup',
 );
 
 auth_router.get('/check', protectRoute, (req, res) => {
+    console.log("[DEBUG] /api/auth/check route hit");
     try {
         console.log("[CHECK] Session:", req.session);
         console.log("[CHECK] isLoggedIn:", req.session?.isLoggedIn);
