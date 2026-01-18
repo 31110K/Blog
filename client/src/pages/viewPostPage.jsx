@@ -18,7 +18,7 @@ const ViewPost = () => {
   const fetchPost = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/viewPost/${postSlug}`);
+      const res = await fetch(`https://blogging-82kn.onrender.com/api/viewPost/${postSlug}`);
       const result = await res.json();
 
       // Debug: Log the entire response
@@ -47,7 +47,7 @@ const ViewPost = () => {
     }
     try {
       const res = await fetch(
-        `http://localhost:5000/api/viewPost/${postSlug}/comment`,
+        `https://blogging-82kn.onrender.com/api/viewPost/${postSlug}/comment`,
         {
           method: "POST",
           headers: {

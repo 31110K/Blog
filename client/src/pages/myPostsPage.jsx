@@ -16,7 +16,7 @@ const MyPosts = () => {
     setIsLoading(true);
     const fetchMyPosts = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/host/myPosts", {
+        const res = await fetch("https://blogging-82kn.onrender.com/api/host/myPosts", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -85,7 +85,7 @@ const MyPosts = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/host/deletePost/${postId}`,
+        `https://blogging-82kn.onrender.com/api/host/deletePost/${postId}`,
         {
           method: "DELETE",
           headers: {

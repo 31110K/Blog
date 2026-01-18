@@ -27,7 +27,7 @@ const Profile = () => {
     setLoading(true);
     
     try {
-      const res = await fetch("http://localhost:5000/api/auth/updateProfile", {
+      const res = await fetch("https://blogging-82kn.onrender.com/api/auth/updateProfile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -78,7 +78,7 @@ const Profile = () => {
       const formData = new FormData();
       formData.append("image", file);
       
-      const res = await fetch("http://localhost:5000/api/host/upload", {
+      const res = await fetch("https://blogging-82kn.onrender.com/api/host/upload", {
         method: "POST",
         body: formData,
         credentials: "include"

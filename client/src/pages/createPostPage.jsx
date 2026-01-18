@@ -85,7 +85,7 @@ const CreatePost = () => {
 
     try {
       console.log("Posting blog with details:", postDetail);
-      const res = await fetch("http://localhost:5000/api/host/createPost", {
+      const res = await fetch("https://blogging-82kn.onrender.com/api/host/createPost", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -172,7 +172,7 @@ const CreatePost = () => {
                         config={{
                           uploader: {
                             insertImageAsBase64URI: false,
-                            url: "http://localhost:5000/api/host/upload",
+                            url: "https://blogging-82kn.onrender.com/api/host/upload",
                             format: "json",
                             filesVariableName: "image",
                             withCredentials: true,

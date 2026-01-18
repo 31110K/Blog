@@ -18,7 +18,7 @@ const Home = () => {
 
       try {
         // Fetch latest posts
-        const latestRes = await fetch('http://localhost:5000/api/home/latestPosts', {
+        const latestRes = await fetch('https://blogging-82kn.onrender.com/api/home/latestPosts', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -28,7 +28,7 @@ const Home = () => {
         setLatestPosts(latestData.latestPosts);
 
         // Fetch random posts
-        const randomRes = await fetch('http://localhost:5000/api/home/randomPosts', {
+        const randomRes = await fetch('https://blogging-82kn.onrender.com/api/home/randomPosts', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -38,7 +38,7 @@ const Home = () => {
         setRandomPosts(randomData.randomPosts);
 
         // Fetch category posts
-        const categoryRes = await fetch('http://localhost:5000/api/home/categoryPosts', {
+        const categoryRes = await fetch('https://blogging-82kn.onrender.com/api/home/categoryPosts', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

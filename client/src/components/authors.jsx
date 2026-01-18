@@ -11,7 +11,7 @@ const Authors = () => {
   useEffect(() => {
     const fetchAuthors = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/home/authors", {
+        const res = await fetch("https://blogging-82kn.onrender.com/api/home/authors", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

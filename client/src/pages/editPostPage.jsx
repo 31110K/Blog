@@ -37,7 +37,7 @@ const EditPost = () => {
     const fetchPost = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/host/getPost/${postId}`,
+          `https://blogging-82kn.onrender.com/api/host/getPost/${postId}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -119,7 +119,7 @@ const EditPost = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/host/updatePost/${postId}`,
+        `https://blogging-82kn.onrender.com/api/host/updatePost/${postId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -210,7 +210,7 @@ const EditPost = () => {
                         config={{
                           uploader: {
                             insertImageAsBase64URI: false,
-                            url: "http://localhost:5000/api/host/upload",
+                            url: "https://blogging-82kn.onrender.com/api/host/upload",
                             format: "json",
                             withCredentials: true,
                             filesVariableName: "image", // <--- add this line
