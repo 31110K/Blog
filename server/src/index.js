@@ -16,7 +16,11 @@ dotenv.config();
 
 const MongoDBStore = connectMongoDBSession(session);
 
+
 const app = express();
+
+// Trust first proxy (needed for secure cookies on Render, Heroku, etc)
+app.set('trust proxy', 1);
 
 app.use(
   cors({
@@ -46,8 +50,7 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     secure: true,
-    sameSite: "none",
-    domain: "blogging-ruby-alpha.vercel.app"
+    sameSite: "none"
   },
   store: store,
   resave: true,
