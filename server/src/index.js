@@ -20,23 +20,14 @@ const MongoDBStore = connectMongoDBSession(session);
 
 const app = express();
 
-// Simple test route for debugging
-app.get('/api/test', (req, res) => {
-  console.log("[DEBUG] /api/test route hit");
-  res.send("Test route working");
-});
-
-// Trust first proxy (needed for secure cookies on Render, Heroku, etc)
 app.set('trust proxy', 1);
 
-app.use(
-  cors({
-    origin: [
-      "https://blogging-ruby-alpha.vercel.app"
-    ],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "https://blog-e5hb.vercel.app", // EXACT frontend URL
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
