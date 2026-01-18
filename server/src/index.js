@@ -1,4 +1,5 @@
 import express from "express";
+console.log("[DEBUG] Server file loaded and logging is working");
 import dotenv from "dotenv";
 import mongoose from "mongoose"
 import auth_router from "./routes/auth.js";
@@ -18,6 +19,12 @@ const MongoDBStore = connectMongoDBSession(session);
 
 
 const app = express();
+
+// Simple test route for debugging
+app.get('/api/test', (req, res) => {
+  console.log("[DEBUG] /api/test route hit");
+  res.send("Test route working");
+});
 
 // Trust first proxy (needed for secure cookies on Render, Heroku, etc)
 app.set('trust proxy', 1);

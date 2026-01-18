@@ -15,30 +15,36 @@ auth_router.post('/login', async (req, res) => {
     try {
         const user = await Users.findOne({ email });
 
-            console.log("[LOGIN] User found:", user);
-            if (!user) {
-                console.log("[LOGIN] No user found with email:", email);
-                return res.status(400).json({ message: "Wrong Credentials" });
-            }
+        console.log("[LOGIN] User found:", user);
+        if (!user) {
+            console.log("[LOGIN] No user found with email:", email);
+            return res.status(400).json({ message: "Wrong Credentials" });
+        }
 
         const matches = await bcrypt.compare(password, user.password);
 
-            console.log("[LOGIN] Password match:", matches);
-            if (!matches) {
-                console.log("[LOGIN] Password is incorrect for user:", email);
-                return res.status(400).json({ message: "Wrong Credentials" });
-            }
+        console.log("[LOGIN] Password match:", matches);
+        if (!matches) {
+            console.log("[LOGIN] Password is incorrect for user:", email);
+            return res.status(400).json({ message: "Wrong Credentials" });
+        }
 
         // ✅ Store only userId in session
         req.session.isLoggedIn = true;
         req.session.userId = user._id;
 
-            console.log("[LOGIN] Login successful for user:", email);
+        req.session.save(err => {
+            if (err) {
+                console.error("Session save error:", err);
+                return res.status(500).json({ message: "Session save error" });
+            }
+            console.log("[LOGIN] Session saved:", req.session);
             res.status(200).json({ success: true, message: "Login successful" });
+        });
 
     } catch (error) {
-            console.error("[LOGIN] Login error:", error);
-            res.status(500).json({ message: "Internal server error" });
+        console.error("[LOGIN] Login error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 });
 
