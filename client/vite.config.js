@@ -14,7 +14,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('jodit') || id.includes('jodit-react')) return 'vendor.editor'
+            if (id.includes('jodit-react')) return 'vendor.editor.react'
+            if (id.includes('jodit')) return 'vendor.editor.core'
             if (id.includes('react')) return 'vendor.react'
             if (id.includes('lodash')) return 'vendor.lodash'
             return 'vendor'
