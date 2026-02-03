@@ -195,7 +195,6 @@ const CreatePost = () => {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
-                      </Suspense>
                   </div>
                   <div className="input-group">
                     <label>Excerpt</label>
@@ -242,6 +241,7 @@ const CreatePost = () => {
                           },
                         }}
                       />
+                      </Suspense>
                     </div>
                   </div>
                 </div>
