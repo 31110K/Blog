@@ -5,7 +5,7 @@ import Users from '../models/user.js';
 const home_router = express.Router();
 
 home_router.get('/latestPosts', async (req, res) => {
-    console.log("Received request to fetch latest posts");
+    
     try {
         // Fetch the latest 7 posts
         const latestPosts = await Post.find()
@@ -13,7 +13,7 @@ home_router.get('/latestPosts', async (req, res) => {
             .limit(7)
             .populate('author', 'name profilePic email');
 
-            console.log("Latest Posts:", latestPosts);
+            
         res.status(200).json({
             success: true,
             latestPosts,

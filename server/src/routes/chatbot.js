@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 
 const chatbot_router = express.Router();
 
-// hello route to test authentication
+
 // Resolve __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

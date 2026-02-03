@@ -11,6 +11,7 @@ import uploadRouter from "./lib/uploadCloudinary.js";
 import myPosts_router from "./routes/myPosts.js";
 import viewPost_router from "./routes/viewPost.js";
 import home_router from "./routes/home.js";  
+import chatbot_router from "./routes/chatbot.js";
 
 
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/host', createPost_router);
 app.use('/api/host', myPosts_router);
 app.use('/api/host', uploadRouter);
 app.use('/api', viewPost_router);
+app.use('/api/chatbot', chatbot_router);
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect("mongodb+srv://root:root@alokyadav.oameudm.mongodb.net/BLOGGING?retryWrites=true&w=majority&appName=ALOKYADAV")

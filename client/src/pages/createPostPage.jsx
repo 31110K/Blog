@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./cssfile/createPost.css";
 import JoditEditor from "jodit-react";
 import { useAuthStore } from "../store/useAuthStore.js";
@@ -25,6 +25,17 @@ const CreatePost = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraft, SetIsDraft] = useState(false);
   const [isSchedule, SetIsSchedule] = useState(false);
+  // Chatbot UI state
+  const [chatbotPrompt, setChatbotPrompt] = useState("");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const messageEndRef = useRef(null);
+
+  useEffect(() => {
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,6 +126,42 @@ const CreatePost = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSendChat = async () => {
+    const prompt = chatbotPrompt.trim();
+    if (!prompt) return;
+
+    // append user message
+    setChatMessages((m) => [...m, { sender: "user", text: prompt }]);
+    setChatbotPrompt("");
+    setIsChatLoading(true);
+
+    try {
+      // Try sending to a backend chatbot endpoint; fallback to stub response on failure
+      const res = await fetch("https://blogging-82kn.onrender.com/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Chatbot endpoint responded with error");
+
+      const data = await res.json();
+      const reply = data?.reply || data?.message || "(no reply)";
+      setChatMessages((m) => [...m, { sender: "bot", text: String(reply) }]);
+    } catch (err) {
+      setChatMessages((m) => [...m, { sender: "bot", text: "Chat backend not available — local stub reply." }]);
+      console.error("Chat send error:", err);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  const handleClear = () => {
+    setChatMessages([]);
+    setChatbotPrompt("");
   };
 
   return (
@@ -341,6 +388,69 @@ const CreatePost = () => {
                   {isSubmitting ? "Posting..." : "Post"}
                 </button>
               )}
+            </div>
+
+            {/* Chatbot UI placed below the post button */}
+            <div className="chatbot card">
+              <div className="chatbot-header">
+                <h4>Chatbot</h4>
+                <p className="chat-sub">Ask the assistant to help draft or improve your post</p>
+              </div>
+
+              <div className="chat-window">
+                {chatMessages.length === 0 && (
+                  <div className="chat-empty">
+                    <p className="muted">No messages yet. Try: "Write an intro paragraph for my post about React."</p>
+                  </div>
+                )}
+
+                {chatMessages.map((m, i) => (
+                  <div
+                    key={i}
+                    className={"chat-message-row " + (m.sender === "user" ? "row-user" : "row-bot")}
+                  >
+                    <div className="chat-avatar">{m.sender === "user" ? "👤" : "🤖"}</div>
+                    <div className="chat-body">
+                      <div className="chat-meta">
+                        <span className="chat-sender">{m.sender === "user" ? "You" : "Assistant"}</span>
+                        <time className="chat-time">{new Date(m.time || Date.now()).toLocaleTimeString()}</time>
+                      </div>
+                      <div className={"chat-bubble " + (m.sender === "user" ? "chat-bubble-user" : "chat-bubble-bot")}>
+                        {m.text}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div ref={messageEndRef} />
+              </div>
+
+              <div className="chat-footer">
+                <button type="button" className="btn-clear" onClick={handleClear}>
+                  Clear all
+                </button>
+
+                <div className="chat-prompt-wrap">
+                  <textarea
+                    rows={1}
+                    placeholder="Enter prompt for chatbot..."
+                    value={chatbotPrompt}
+                    onChange={(e) => setChatbotPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendChat();
+                      }
+                    }}
+                    className="chat-prompt"
+                    aria-label="Chat prompt"
+                  />
+                </div>
+
+                <button type="button" className="btn-generate" onClick={handleSendChat} disabled={isChatLoading}>
+                  {isChatLoading ? "Generating..." : "Generate"}
+                </button>
+              </div>
             </div>
           </form>
         </main>
