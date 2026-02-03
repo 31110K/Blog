@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
 import "./cssfile/createPost.css";
-import JoditEditor from "jodit-react";
+const JoditEditor = lazy(() => import("jodit-react"));
 import { useAuthStore } from "../store/useAuthStore.js";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
@@ -195,6 +195,7 @@ const CreatePost = () => {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
+                      </Suspense>
                   </div>
                   <div className="input-group">
                     <label>Excerpt</label>
@@ -211,12 +212,13 @@ const CreatePost = () => {
                   <div className="input-group">
                     <label>Content *</label>
                     <div className="editor-wrapper">
-                      <JoditEditor
-                        ref={editorRef}
-                        value={content}
-                        onChange={() => {}} 
-                        onBlur={(newContent) => setContent(newContent)} 
-                        config={{
+                      <Suspense fallback={<div>Loading editor…</div>}>
+                        <JoditEditor
+                          ref={editorRef}
+                          value={content}
+                          onChange={() => {}} 
+                          onBlur={(newContent) => setContent(newContent)} 
+                          config={{
                           uploader: {
                             insertImageAsBase64URI: false,
                             url: "https://blogging-82kn.onrender.com/api/host/upload",
