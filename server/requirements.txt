@@ -1,3 +1,1 @@
-# Install google generative AI client directly from the GitHub source.
-# This helps when a PyPI wheel is not available for the deployed Python version.
-git+https://github.com/googleapis/python-generative-ai.git@main
+google-generative-ai
