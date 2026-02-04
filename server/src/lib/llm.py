@@ -3,7 +3,7 @@ from google import genai
 from typing import List, Dict
 
 # Initialize Gemini client using environment variable
-_api_key = os.getenv("GOOGLE_API_KEY")
+_api_key = os.environ["GOOGLE_API_KEY"]
 if not _api_key:
     raise RuntimeError("Missing GOOGLE_API_KEY environment variable for Gemini client")
 
