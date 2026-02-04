@@ -15,32 +15,57 @@ const __dirname = path.dirname(__filename);
 const llmCliPath = path.resolve(__dirname, '../lib/llm_cli.py');
 
 function runPythonLLM(prompt) {
+    const candidates = [process.env.PYTHON_EXECUTABLE, 'python', 'python3'].filter(Boolean);
+
+    const options = { env: process.env, maxBuffer: 10 * 1024 * 1024 };
+
     return new Promise((resolve, reject) => {
-        const py = child_process.execFile('python', [llmCliPath, prompt], { env: process.env, maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
-            console.log('[DEBUG] Python LLM process finished, parsing output');
-            if (err) {
-                console.error('LLM process execution error:', err, stderr && stderr.toString());
-                return reject(new Error('LLM process execution error'));
-            }
-            const out = stdout ? stdout.toString().trim() : '';
-            if (!out) {
-                const serr = stderr ? stderr.toString().trim() : '';
-                console.error('LLM produced no stdout, stderr:', serr);
-                return reject(new Error(serr || 'Empty LLM response'));
-            }
-            try {
-                const data = JSON.parse(out);
-                if (data && data.success === false) {
-                    console.error('LLM returned error payload:', data.error || data);
-                    return reject(new Error(data.error || 'LLM returned failure'));
+        let tried = 0;
+
+        const tryExec = (cmdIndex) => {
+            const cmd = candidates[cmdIndex];
+            tried += 1;
+            console.log(`[DEBUG] Trying Python executable: ${cmd}`);
+
+            child_process.execFile(cmd, [llmCliPath, prompt], options, (err, stdout, stderr) => {
+                console.log(`[DEBUG] Process ${cmd} finished`);
+                if (err) {
+                    const serr = stderr ? stderr.toString().trim() : '';
+                    console.error(`LLM execution error with ${cmd}:`, err && err.message ? err.message : err, serr);
+                    // If there's another candidate, try it
+                    if (cmdIndex + 1 < candidates.length) {
+                        console.log(`[DEBUG] Falling back to next Python candidate`);
+                        return tryExec(cmdIndex + 1);
+                    }
+                    return reject(new Error(serr || err.message || 'LLM process execution error'));
                 }
-                return resolve(data.reply ?? '');
-            } catch (e) {
-                // If output is not JSON, use raw text as fallback
-                console.warn('LLM stdout not JSON, using raw stdout');
-                return resolve(out);
-            }
-        });
+
+                const out = stdout ? stdout.toString().trim() : '';
+                if (!out) {
+                    const serr2 = stderr ? stderr.toString().trim() : '';
+                    console.error('LLM produced no stdout (all tried), stderr:', serr2);
+                    return reject(new Error(serr2 || 'Empty LLM response'));
+                }
+
+                try {
+                    const data = JSON.parse(out);
+                    if (data && data.success === false) {
+                        console.error('LLM returned error payload:', data.error || data);
+                        return reject(new Error(data.error || 'LLM returned failure'));
+                    }
+                    return resolve(data.reply ?? '');
+                } catch (e) {
+                    console.warn('LLM stdout not JSON, using raw stdout');
+                    return resolve(out);
+                }
+            });
+        };
+
+        if (candidates.length === 0) {
+            return reject(new Error('No Python executable candidates configured'));
+        }
+
+        tryExec(0);
     });
 }
 
