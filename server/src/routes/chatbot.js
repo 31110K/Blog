@@ -122,5 +122,43 @@ chatbot_router.post('/test', async (req, res) => {
     return res.status(200).json({ success: true, received: req.body, headers: req.headers });
 });
 
+// Python environment diagnostic endpoint (no auth) - returns info for each python candidate
+chatbot_router.get('/python-status', async (req, res) => {
+    try {
+        const candidates = [process.env.PYTHON_EXECUTABLE, 'python', 'python3'].filter(Boolean);
+        const results = [];
+
+        let idx = 0;
+        const checkNext = () => {
+            if (idx >= candidates.length) {
+                return res.status(200).json({ success: true, results });
+            }
+            const cmd = candidates[idx++];
+            console.log('[DEBUG] Checking python candidate:', cmd);
+            const script = [
+                '-c',
+                "import sys, importlib, json; print(json.dumps({'executable': sys.executable, 'version': sys.version, 'has_genai': importlib.util.find_spec('google.genai') is not None}))"
+            ];
+
+            child_process.execFile(cmd, script, { env: process.env, timeout: 20000 }, (err, stdout, stderr) => {
+                results.push({
+                    candidate: cmd,
+                    ok: !err,
+                    error: err ? (err.message || String(err)) : null,
+                    stdout: stdout ? stdout.toString().trim() : null,
+                    stderr: stderr ? stderr.toString().trim() : null
+                });
+                // Continue to next candidate
+                checkNext();
+            });
+        };
+
+        checkNext();
+    } catch (e) {
+        console.error('python-status error:', e);
+        return res.status(500).json({ success: false, message: 'python-status failed', error: e && e.message });
+    }
+});
+
 
 export default chatbot_router;
