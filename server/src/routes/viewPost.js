@@ -6,6 +6,8 @@ import { protectRoute } from "../middlewares/auth_middleware.js";
 const viewPost_router = express.Router();
 const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
+const isValidObjectIdString = (value) => /^[a-fA-F0-9]{24}$/.test(String(value));
+
 // =======================
 // GET SINGLE POST
 // =======================
@@ -157,27 +159,52 @@ viewPost_router.get("/viewPost/:postSlug/similarPosts", async (req, res) => {
     let interestText =
       post.title + " " + post.tags.join(" ") + " " + post.categories.join(" ");
 
-    const response = await fetch(`${pythonServiceUrl}/similarPosts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        interest_text: interestText,
-      }),
-    });
+    let similarPosts = [];
 
-    const data = await response.json();
+    try {
+      const response = await fetch(`${pythonServiceUrl}/similarPosts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          interest_text: interestText,
+        }),
+      });
 
-    const similarPostsIds = data.similar_posts_ids || [];
+      if (!response.ok) {
+        console.warn("Similar posts API returned non-OK:", response.status);
+      } else {
+        const data = await response.json();
+        const similarPostsIds = (data.similar_posts_ids || []).filter((id) =>
+          isValidObjectIdString(id),
+        );
 
-    const similarPosts = await Post.find({
-      _id: { $in: similarPostsIds },
-      slug: { $ne: postSlug },
-    })
-      .select("title slug featuredImage tags createdAt")
-      .populate("author", "name profilePic email")
-      .limit(6);
+        if (similarPostsIds.length > 0) {
+          similarPosts = await Post.find({
+            _id: { $in: similarPostsIds },
+            slug: { $ne: postSlug },
+          })
+            .select("title slug featuredImage tags createdAt")
+            .populate("author", "name profilePic email")
+            .limit(6);
+        }
+      }
+    } catch (similarApiError) {
+      console.error("Similar posts API error:", similarApiError);
+    }
+
+    if (similarPosts.length === 0) {
+      similarPosts = await Post.find({
+        _id: { $ne: post._id },
+        categories: { $in: post.categories || [] },
+        status: "publish",
+      })
+        .sort({ createdAt: -1 })
+        .select("title slug featuredImage tags createdAt")
+        .populate("author", "name profilePic email")
+        .limit(6);
+    }
 
     res.status(200).json({ success: true, data: similarPosts });
   } catch (err) {
