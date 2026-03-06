@@ -6,10 +6,13 @@ import CategoriesPosts from '../components/categoriesPosts.jsx';
 import Footer from '../components/footer.jsx';
 import './cssfile/home.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://blogging-82kn.onrender.com';
+
 const Home = () => {
   const RANDOM_PAGE_SIZE = 9;
   const RANDOM_FETCH_LIMIT = 70;
   const [latestPosts, setLatestPosts] = useState([]);
+  const [recommendedPosts, setRecommendedPosts] = useState([]);
   const [randomPosts, setRandomPosts] = useState([]);
   const [randomPage, setRandomPage] = useState(1);
   const [categoryPosts, setCategoryPosts] = useState([]);
@@ -23,14 +26,15 @@ const Home = () => {
 
       const fetchLatestPosts = async () => {
         try {
-          const latestRes = await fetch('https://blogging-82kn.onrender.com/api/home/latestPosts', {
+          const latestRes = await fetch(`${API_BASE_URL}/api/home/latestPosts`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
           });
           const latestData = await latestRes.json();
           if (!latestData.success) throw new Error('Failed to fetch latest posts');
-          setLatestPosts(latestData.latestPosts);
+          setLatestPosts(latestData.latestPosts || []);
+          setRecommendedPosts(latestData.recommendedPosts || []);
         } catch (error) {
           console.error("Error fetching latest posts:", error);
         } finally {
@@ -40,7 +44,7 @@ const Home = () => {
 
       const fetchRandomPosts = async () => {
         try {
-          const randomRes = await fetch(`https://blogging-82kn.onrender.com/api/home/randomPosts?limit=${RANDOM_FETCH_LIMIT}`, {
+          const randomRes = await fetch(`${API_BASE_URL}/api/home/randomPosts?limit=${RANDOM_FETCH_LIMIT}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -58,7 +62,7 @@ const Home = () => {
 
       const fetchCategoryPosts = async () => {
         try {
-          const categoryRes = await fetch('https://blogging-82kn.onrender.com/api/home/categoryPosts', {
+          const categoryRes = await fetch(`${API_BASE_URL}/api/home/categoryPosts`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -152,7 +156,7 @@ const Home = () => {
               ))}
             </div>
           ) : (
-            <RecentPosts posts={latestPosts}/>
+            <RecentPosts posts={recommendedPosts.length > 0 ? recommendedPosts : latestPosts}/>
           )}
         </section>
       </div>
