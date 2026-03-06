@@ -6,6 +6,8 @@ import { protectRoute } from '../middlewares/auth_middleware.js';
 const home_router = express.Router();
 const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
+const isValidObjectIdString = (value) => /^[a-fA-F0-9]{24}$/.test(String(value));
+
 home_router.get('/latestPosts', protectRoute, async (req, res) => {
     try {
         const homePostFilter = { status: 'publish' };
@@ -49,29 +51,35 @@ home_router.get('/latestPosts', protectRoute, async (req, res) => {
                     `;
                 });
 
-                const response = await fetch(`${pythonServiceUrl}/recommend`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        interest_text: interestText
-                    })
-                });
+                try {
+                    const response = await fetch(`${pythonServiceUrl}/recommend`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            interest_text: interestText
+                        })
+                    });
 
-                const data = await response.json();
+                    if (!response.ok) {
+                        console.warn("Recommendation API returned non-OK:", response.status);
+                    } else {
+                        const data = await response.json();
+                        const recommendedIds = (data.recommendations || [])
+                            .filter((id) => isValidObjectIdString(id));
 
-                const recommendedIds = data.recommendations || [];
-
-                if (recommendedIds.length > 0) {
-
-                    recommendedPosts = await Post.find({
-                        _id: { $in: recommendedIds },
-                        ...homePostFilter
-                    })
-                    .limit(6)
-                    .populate('author', 'name profilePic email');
-
+                        if (recommendedIds.length > 0) {
+                            recommendedPosts = await Post.find({
+                                _id: { $in: recommendedIds },
+                                ...homePostFilter
+                            })
+                                .limit(6)
+                                .populate('author', 'name profilePic email');
+                        }
+                    }
+                } catch (recommendationError) {
+                    console.error("Recommendation fetch error:", recommendationError);
                 }
             }
         }
