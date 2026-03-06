@@ -7,12 +7,15 @@ const CategoriesPosts = ({ cat_posts }) => {
   const { authUser } = useAuthStore();
     
   const postsData = cat_posts || [];
+  const MAIN_POST_LIMIT = 4;
+  const SIDEBAR_POST_LIMIT = 3;
   // State for active category
   const [activeCategory, setActiveCategory] = useState('Travel');
   const activeCategoryObj = postsData.find(obj => obj.category === activeCategory);
   const activePosts = activeCategoryObj ? activeCategoryObj.posts : [];
-  const featuredPost = activePosts[0];
-  const sidebarPosts = activePosts.slice(1, 5); // Next 4 posts
+  const mainPosts = activePosts.slice(0, MAIN_POST_LIMIT);
+  const featuredPost = mainPosts[0];
+  const sidebarPosts = mainPosts.slice(1, 1 + SIDEBAR_POST_LIMIT);
 
   const categories = [ 'Food' , 'Busiiness' , 'Travel', 'Lifestyle' , 'ArtDesign' , 'Technology'];
 
@@ -57,7 +60,7 @@ const CategoriesPosts = ({ cat_posts }) => {
         ) : (
 
           <div className="categories-posts-grid-container">
-            <Link to={authUser ? `/viewPost/${featuredPost.slug}` : "/login"} style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
+            <Link to={authUser ? `/viewPost/${featuredPost.slug}` : "/login"} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
 
             {/* Featured Post */}
             <div className="categories-posts-featured-post-container">
@@ -98,7 +101,7 @@ const CategoriesPosts = ({ cat_posts }) => {
                     key={index} 
                     className="categories-posts-sidebar-post"
                   >
-                    <Link to={`/viewPost/${post.slug}`} style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
+                    <Link to={`/viewPost/${post.slug}`} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
 
                     <div className="categories-posts-sidebar-post-content">
                       <div className="categories-posts-sidebar-image">

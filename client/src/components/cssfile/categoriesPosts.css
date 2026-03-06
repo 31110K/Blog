@@ -1,8 +1,12 @@
 .categories-posts-container {
+  width: 100%;
+  max-width: 100%;
   height: 100%;
   min-height: unset;
   background-color: #F5F5F5;
   font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .categories-posts-nav {
@@ -54,9 +58,11 @@
 }
 
 .categories-posts-main-container {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 16px;
+  box-sizing: border-box;
 }
 
 .categories-posts-no-posts-message {
@@ -67,13 +73,15 @@
 
 .categories-posts-grid-container {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  width: 100%;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
   gap: 32px;
 }
 
 .categories-posts-featured-post-container {
   background-color: #FFFFFF;
   overflow: hidden;
+  min-width: 0;
 }
 
 .categories-posts-featured-image-container {
@@ -124,6 +132,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .categories-posts-sidebar-post {
@@ -171,6 +180,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .categories-posts-sidebar-meta {
@@ -181,6 +191,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
+  overflow-wrap: anywhere;
 }
 
 .categories-posts-star-rating {
@@ -207,8 +218,7 @@
   }
 
   .categories-posts-container {
-    margin-right: 30px;
-    margin-bottom: 40px;;
+    margin: 0 0 40px;
   }
   
   .categories-posts-featured-title {

@@ -4,13 +4,14 @@ import Posts from '../models/post.js';
 import { protectRoute } from '../middlewares/auth_middleware.js';
 
 const myPosts_router = express.Router();
+const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
 myPosts_router.post('/myPosts', protectRoute, async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const posts = await Posts.find({ author: userId });
-    console.log(posts);
+    const posts = await Posts.find({ author: userId }).sort({ createdAt: -1 });
+
     res.status(200).json({ success: true, posts });
   } catch (err) {
     console.error("Error fetching posts:", err);
@@ -67,6 +68,39 @@ myPosts_router.put('/updatePost/:postId', protectRoute, async (req, res) => {
     });
 
     const updatedPost = await post.save();
+
+    // Re-index published post after edits for recommendation search.
+    if (updatedPost.status === "publish") {
+      try {
+        const title = updatedPost.title || "";
+        const tagsText = Array.isArray(updatedPost.tags) ? updatedPost.tags.join(" ") : "";
+        const categoriesText = Array.isArray(updatedPost.categories) ? updatedPost.categories.join(" ") : "";
+        const weightedMetaDescription = `
+          ${updatedPost.metaDescription || ""}
+          ${title} ${title}
+          ${categoriesText}
+        `.trim();
+        const weightedTag = `${tagsText} ${categoriesText}`.trim();
+
+        const payload = {
+          post_id: updatedPost._id.toString(),
+          title,
+          meta_description: weightedMetaDescription,
+          tag: weightedTag,
+        };
+
+        const vectorRes = await fetch(`${pythonServiceUrl}/store`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const vectorData = await vectorRes.json();
+        console.log("Vector API (edit) response:", vectorData);
+      } catch (vectorError) {
+        console.error("Vector API (edit) error:", vectorError);
+      }
+    }
 
     res.status(200).json({
       success: true,

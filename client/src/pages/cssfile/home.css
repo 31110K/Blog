@@ -9,7 +9,7 @@
 .home-flex-row {
   display: flex;
   flex-direction: row;
-  gap: 32px;
+  gap: 1px;
   width: 100%;
   max-width: 100vw;
   margin-bottom: 40px;
@@ -30,14 +30,14 @@
 }
 
 .home-category-section {
-  width: 60vw;
-  max-width: 70vw;
+  width: 100%;
+  max-width: 100%;
   margin-bottom: 40px;
   box-sizing: border-box;
-  padding-right: 2vw;
-  height: 500px;
-  max-height: 500px;
-    overflow: y-scroll;
+  padding-right: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .home-authors-section {
@@ -49,21 +49,175 @@
 }
 
 .home-category-authors-row {
-  display: flex;
-  flex-direction: row;
+  display: block;
   width: 100%;
-  max-width: 100vw;
+  max-width: 100%;
   margin: 0 auto;
-  gap: 0;
   box-sizing: border-box;
 }
 
-.home-category-section {
-  width: 60vw;
-  max-width: 60vw;
-  margin: 5px;
-  box-sizing: border-box;
-  padding-right: 2vw;
+.home-skeleton {
+  background: linear-gradient(90deg, #e6e6e6 25%, #f2f2f2 50%, #e6e6e6 75%);
+  background-size: 200% 100%;
+  animation: home-shimmer 1.4s infinite;
+  border-radius: 4px;
+}
+
+@keyframes home-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.home-loading-random {
+  padding: 8px;
+}
+
+.home-random-top-row {
+  height: 180px;
+  margin-bottom: 12px;
+}
+
+.home-random-main-row {
+  height: 280px;
+  margin-bottom: 12px;
+}
+
+.home-random-bottom-row {
+  height: 220px;
+}
+
+.home-random-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-random-pagination {
+  margin: 6px 12px 0 auto;
+  padding: 6px 8px;
+  background: #f2f2f4;
+  border: 1px solid #e3e3e6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  max-width: min(100%, 380px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.home-random-pagination::-webkit-scrollbar {
+  display: none;
+}
+
+.home-random-page-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #8a8f98;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.home-random-page-btn:hover:not(:disabled) {
+  color: #1f2937;
+  background: #e8eaed;
+}
+
+.home-random-page-btn.active {
+  color: #5ca424;
+  background: #eef8e5;
+  border-color: #d9efc4;
+}
+
+.home-random-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.home-loading-latest {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px;
+}
+
+.home-loading-latest-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  background-color: #ffffff;
+}
+
+.home-loading-latest-image {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.home-loading-latest-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-loading-latest-title {
+  width: 90%;
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.home-loading-latest-date {
+  width: 55%;
+  height: 10px;
+}
+
+.home-loading-category {
+  background-color: #f5f5f5;
+  width: 100%;
+}
+
+.home-loading-category-tabs {
+  background-color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.home-loading-category-tab {
+  width: 120px;
+  min-width: 120px;
+  height: 36px;
+}
+
+.home-loading-category-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 24px;
+  padding: 16px;
+}
+
+.home-loading-category-featured {
+  height: 440px;
+}
+
+.home-loading-category-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-loading-category-side-item {
+  height: 128px;
 }
 
 
@@ -89,13 +243,17 @@
     flex-direction: column;
     justify-content: stretch;
   }
+
+  .home-random-pagination {
+    margin-right: 8px;
+  }
   
 }
 
 @media (max-width: 992px) {
   .home-category-section {
-    width: 80vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -137,12 +295,29 @@
     box-sizing: border-box;
   }
 
-   .home-latest-section {
-    height:300px;
+  .home-latest-section {
+    height: auto;
+    min-height: unset;
+    max-height: none;
+    overflow: visible;
    }
+
+  .home-random-pagination {
+    margin-right: 0;
+    margin-left: auto;
+  }
+
+  .home-loading-category-content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .home-loading-category-featured {
+    height: 280px;
+  }
   .home-category-section {
-     width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     padding: 0;
     box-sizing: border-box;

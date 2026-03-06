@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import "./cssfile/viewPost.css";
 import { ExternalLink } from "lucide-react";
 import { ToastContainer } from "react-toastify";
@@ -14,11 +14,15 @@ const ViewPost = () => {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
   const [showAllComments, setShowAllComments] = useState(false); // New state for toggling comments
+  const [similarPosts, setSimilarPosts] = useState([]);
+  const [loadingSimilar, setLoadingSimilar] = useState(false);
 
   const fetchPost = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`https://blogging-82kn.onrender.com/api/viewPost/${postSlug}`);
+      const res = await fetch(`https://blogging-82kn.onrender.com/api/viewPost/${postSlug}`, {
+      credentials: "include",   // 🔥 THIS WAS MISSING
+      });
       const result = await res.json();
 
       // Debug: Log the entire response
@@ -35,8 +39,27 @@ const ViewPost = () => {
     setLoading(false);
   };
 
+  const fetchSimilarPosts = async () => {
+    setLoadingSimilar(true);
+    try {
+      const res = await fetch(`https://blogging-82kn.onrender.com/api/viewPost/${postSlug}/similarPosts`, {
+        credentials: "include",
+      });
+      const result = await res.json();
+      if (result.success) {
+        setSimilarPosts(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching similar posts:", err);
+    } finally {
+      setLoadingSimilar(false);
+    }
+  };
+
   useEffect(() => {
-    if (postSlug) fetchPost();
+    if (postSlug) {
+      fetchPost().then(() => fetchSimilarPosts());
+    }
   }, [postSlug]);
 
   const saveComment = async (e) => {
@@ -265,19 +288,23 @@ const ViewPost = () => {
         {/* Right: Similar Posts */}
         <aside className="vp-similar-posts">
           <div>
-            <h3>Similar Posts</h3>
-            {1 == 2 ? (
-              post.similarPosts.map((item, idx) => (
-                <a
+            <h3 className="vp-similar-heading">More Like this</h3>
+            {loadingSimilar ? (
+              <div className="vp-loader">
+                <div className="vp-spinner"></div>
+              </div>
+            ) : (
+              similarPosts.length > 0 && similarPosts.map((item, idx) => (
+                <Link
                   key={idx}
-                  href={`/view/${item.slug}`}
+                  to={`/viewPost/${item.slug}`}
                   className="vp-similar-item-anchor"
                 >
                   <div className="vp-similar-item">
                     <div className="vp-similar-img-wrap">
                       <img
                         src={
-                          item.featuredImageurl ||
+                          item.featuredImage?.url ||
                           "https://via.placeholder.com/80x60?text=No+Image"
                         }
                         alt={item.title}
@@ -295,10 +322,8 @@ const ViewPost = () => {
                       </p>
                     </div>
                   </div>
-                </a>
+                </Link>
               ))
-            ) : (
-              <p>No similar posts available.</p>
             )}
           </div>
         </aside>

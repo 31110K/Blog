@@ -30,6 +30,12 @@ const usersSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    recent_viewed_posts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Posts",
+        },
+    ],
 },
 
     { timestamps: true }

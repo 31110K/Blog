@@ -122,26 +122,81 @@
 
 .vp-similar-posts {
   flex: 0 0 30%;
-  background: #fff;
+  background: transparent;
   padding: 1rem;
   height: fit-content;
 }
 
+.vp-similar-heading {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin-bottom: 1.8rem;
+  color: #000;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding-bottom: 0.5rem;
+  z-index: 10;
+}
+
+.vp-similar-item-anchor {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .vp-similar-item {
-  background: #f9f9f9;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  padding: 0.8rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  display: flex;
+  gap: 0.8rem;
 }
 
-.vp-similar-item h4 {
+.vp-similar-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.vp-similar-img-wrap {
+  flex: 0 0 140px;
+  height: 140px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.vp-similar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  box-shadow: none;
+}
+
+.vp-similar-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.vp-similar-title {
   font-size: 1rem;
-  margin: 0 0 0.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: #222;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
 }
 
-.vp-similar-item p {
-  font-size: 0.9rem;
-  color: #555;
+.vp-similar-date {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
 }
 
 .vp-comment-section {
@@ -247,5 +302,30 @@
   display: block;
   margin-left: auto;
   margin-top: 10px;
+}
+
+.vp-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.vp-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: vp-spin 1s linear infinite;
+}
+
+@keyframes vp-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 

@@ -28,11 +28,15 @@ const RecentPosts = ({ posts }) => {
 
   return (
     <div className="lp-recentPosts">
+      <div className="lp-sectionHeader">
+        <h2 className="lp-sectionTitle">Recommended Post</h2>
+        <p className="lp-sectionSubtitle">Hand picked for you</p>
+      </div>
       <div className="lp-postsContainer">
         {posts.map((post, index) => {
           const hasImage = post.featuredImage?.url;
           return (
-            <Link key={post._id || index} to={authUser ? `/viewPost/${post.slug}` : "/login"} style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
+            <Link key={post._id || index} to={authUser ? `/viewPost/${post.slug}` : "/login"} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
               <div
                 className={`lp-postItem ${hoveredPost === post._id ? 'hover' : ''}`}
                 onMouseEnter={() => setHoveredPost(post._id)}

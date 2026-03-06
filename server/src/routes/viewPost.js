@@ -1,109 +1,191 @@
-import express from 'express';
-import Post from '../models/post.js';
-import Users from '../models/user.js';
+import express from "express";
+import Post from "../models/post.js";
+import Users from "../models/user.js";
+import { protectRoute } from "../middlewares/auth_middleware.js";
+
 const viewPost_router = express.Router();
+const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
-
-
-viewPost_router.get('/viewPost/:postSlug', async (req, res) => {
-    console.log("Received request to view post");
+// =======================
+// GET SINGLE POST
+// =======================
+viewPost_router.get(
+  "/viewPost/:postSlug",
+  protectRoute, // ✅ ADDED (this fixes req.user issue)
+  async (req, res) => {
     const { postSlug } = req.params;
-    console.log("Fetching post with slug:", postSlug);
 
     try {
-        const post = await Post.findOne({ slug: postSlug });
-        console.log("Post found:", post);
+      const post = await Post.findOne({ slug: postSlug });
 
-        if (!post) {
-            return res.status(404).json({ success: false, message: "Post not found" });
-        }
-        post.views = (post.views || 0) + 1;
-        await post.save();
+      if (!post) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Post not found" });
+      }
 
-        const postAuthor = await Users.findById(post.author);
-        // Prepare a clean response object
+      await Post.findByIdAndUpdate(post._id, {
+        $inc: { views: 1 },
+      });
 
-        const similarPosts = await Post.find({
-            _id: { $ne: post._id }, 
-            categories: { $in: post.categories }, 
-        }).limit(5); 
+      if (req.user) {
+        await Users.findByIdAndUpdate(req.user._id, {
+          $pull: { recent_viewed_posts: post._id },
+        });
 
-        const similarPostsData = similarPosts.map(similarPost => ({
-            title: similarPost.title,
-            featuredImageurl: similarPost.featuredImage.url,
-            createdAt : similarPost.createdAt,
-            slug: similarPost.slug,
-        }));
+        await Users.findByIdAndUpdate(req.user._id, {
+          $push: {
+            recent_viewed_posts: {
+              $each: [post._id],
+              $slice: -5,
+            },
+          },
+        });
+      }
+      const postAuthor = await Users.findById(post.author);
 
-        const responsePost = {
-            ...post.toObject(),
-            authorName: postAuthor?.name || '',
-            authorProfilePic: postAuthor?.profilePic || '',
-            authorEmail: postAuthor?.email || '',
-            similarPosts: similarPostsData,
-        };
-        // Remove sensitive or auth fields if present
-        delete responsePost.password;
-        delete responsePost.__v;
-        delete responsePost.author;
+      const similarPosts = await Post.find({
+        _id: { $ne: post._id },
+        categories: { $in: post.categories },
+      }).limit(5);
 
-        res.status(200).json({ success: true, data: responsePost });
+      const similarPostsData = similarPosts.map((similarPost) => ({
+        title: similarPost.title,
+        featuredImageurl: similarPost.featuredImage?.url,
+        createdAt: similarPost.createdAt,
+        slug: similarPost.slug,
+      }));
+
+      const responsePost = {
+        ...post.toObject(),
+        authorName: postAuthor?.name || "",
+        authorProfilePic: postAuthor?.profilePic || "",
+        authorEmail: postAuthor?.email || "",
+        similarPosts: similarPostsData,
+      };
+
+      delete responsePost.password;
+      delete responsePost.__v;
+      delete responsePost.author;
+
+      res.status(200).json({ success: true, data: responsePost });
     } catch (err) {
-        console.error("Error fetching post:", err);
-        res.status(500).json({ success: false, message: "Failed to fetch post" });
+      console.error("Error fetching post:", err);
+      res.status(500).json({ success: false, message: "Failed to fetch post" });
     }
+  },
+);
+
+// =======================
+// ADD COMMENT
+// =======================
+viewPost_router.post("/viewPost/:postSlug/comment", async (req, res) => {
+  const { name, email, comment } = req.body;
+  const { postSlug } = req.params;
+
+  const commentData = {
+    commenter_name: name,
+    commenter_email: email,
+    comment,
+  };
+
+  try {
+    const post = await Post.findOneAndUpdate(
+      { slug: postSlug },
+      { $push: { comments: commentData } },
+      { new: true, runValidators: true },
+    );
+
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Comment added successfully",
+      data: post,
+    });
+  } catch (err) {
+    console.error("Error adding comment:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add comment from server side",
+    });
+  }
 });
 
+// =======================
+// GET COMMENTS
+// =======================
+viewPost_router.get("/viewPost/:postSlug/comment", async (req, res) => {
+  const { postSlug } = req.params;
 
-viewPost_router.post('/viewPost/:postSlug/comment', async (req, res) => {
+  try {
+    const post = await Post.findOne({ slug: postSlug }, "comments");
 
-    const { name ,email , comment } = req.body;
-    const { postSlug } = req.params;
-    console.log( name, email , comment, postSlug);
-
-    const commentData = {
-        commenter_name:name,
-        commenter_email:email,
-        comment
-    };
-
-    try {
-        const post = await Post.findOneAndUpdate({ slug: postSlug },
-            { $push: { comments: commentData } },
-            { new: true, runValidators: true }
-        );
-
-        if (!post) {
-            return res.status(404).json({ success: false, message: "Post not found" });
-        }
-        res.status(200).json({ success: true, message: "Comment added successfully", data: post });
-    } catch (err) {
-        console.error("Error adding comment:", err);
-        res.status(500).json({ success: false, message: "Failed to add comment from server side" });
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
-            
-})
 
-viewPost_router.get('/viewPost/:postSlug/comment', async (req, res) => {
+    res.status(200).json({ success: true, data: post.comments });
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch comments" });
+  }
+});
 
-    const { postSlug } = req.params;
-    console.log("Fetching comments for post with slug:", postSlug);
+//----------------------
+// GET SIMILAR POSTS
+//----------------------
+viewPost_router.get("/viewPost/:postSlug/similarPosts", async (req, res) => {
+  const { postSlug } = req.params;
 
-    try {
-        const post = await Post.findOne({ slug: postSlug }, 'comments');
-        console.log("Post found:", post);
+  try {
+    const post = await Post.findOne({ slug: postSlug });
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+    }
 
-        if (!post) {
-            return res.status(404).json({ success: false, message: "Post not found" });
-        }
+    let interestText =
+      post.title + " " + post.tags.join(" ") + " " + post.categories.join(" ");
 
-        res.status(200).json({ success: true, data: post.comments });
-    } catch (err) {
-        console.error("Error fetching comments:", err);
-        res.status(500).json({ success: false, message: "Failed to fetch comments" });
-    }   
+    const response = await fetch(`${pythonServiceUrl}/similarPosts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        interest_text: interestText,
+      }),
+    });
 
-})
+    const data = await response.json();
 
+    const similarPostsIds = data.similar_posts_ids || [];
+
+    const similarPosts = await Post.find({
+      _id: { $in: similarPostsIds },
+      slug: { $ne: postSlug },
+    })
+      .select("title slug featuredImage tags createdAt")
+      .populate("author", "name profilePic email")
+      .limit(6);
+
+    res.status(200).json({ success: true, data: similarPosts });
+  } catch (err) {
+    console.error("Error fetching similar posts:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch similar posts" });
+  }
+});
 
 export default viewPost_router;

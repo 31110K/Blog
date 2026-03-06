@@ -8,11 +8,13 @@ const RandomPosts = ({ posts }) => {
 
   const categoryStyles = {
     'ARTDESIGN': 'rp-artDesignTag',
+    'ART & DESIGN': 'rp-artDesignTag',
+    'BUSINESS': 'rp-natureTag',
     'BUSSINESS': 'rp-natureTag',
     'TRAVEL': 'rp-travelTag',
-    'LIFESTYLE': 'rp-friendsTag',
-    'FOOD': 'rp-peopleTag',
-    'TECHNOLOGY': 'rp-techTag'
+    'LIFESTYLE': 'rp-lifestyleTag',
+    'FOOD': 'rp-foodTag',
+    'TECHNOLOGY': 'rp-technologyTag'
   };
 
   const getCategoryClass = (category) => {
@@ -40,7 +42,7 @@ const RandomPosts = ({ posts }) => {
         key={cardKey}
         className={`rp-postCard ${isLarge ? 'large' : 'small'}`}
       >
-        <Link to={authUser ? `/viewPost/${post.slug}` : "/login"} style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
+        <Link to={authUser ? `/viewPost/${post.slug}` : "/login"} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', height: '100%', textDecoration: 'none', color: 'inherit' }}>
           <div
             className={`rp-postImage ${isLarge ? 'large' : 'small'} ${!hasImage ? 'placeholder' : ''}`}
             style={hasImage ? { backgroundImage: `url(${post.featuredImage.url})` } : {}}

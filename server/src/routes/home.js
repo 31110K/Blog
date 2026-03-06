@@ -1,33 +1,110 @@
 import express from 'express';
 import Post from '../models/post.js';
 import Users from '../models/user.js';
+import { protectRoute } from '../middlewares/auth_middleware.js';
 
 const home_router = express.Router();
+const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || "http://localhost:8000";
 
-home_router.get('/latestPosts', async (req, res) => {
-    
+home_router.get('/latestPosts', protectRoute, async (req, res) => {
     try {
-        // Fetch the latest 7 posts
-        const latestPosts = await Post.find()
+        const homePostFilter = { status: 'publish' };
+
+        // Latest posts for homepage
+        const latestPosts = await Post.find(homePostFilter)
             .sort({ createdAt: -1 })
             .limit(7)
             .populate('author', 'name profilePic email');
 
-            
-        res.status(200).json({
+        let recommendedPosts = [];
+
+        console.log("[DEBUG] Logged user:", req.user);
+
+        if (req.user) {
+
+            const user = await Users.findById(req.user._id);
+
+            const recentPostIds = user?.recent_viewed_posts || [];
+
+            if (recentPostIds.length > 0) {
+
+                const posts = await Post.find({
+                    _id: { $in: recentPostIds },
+                    ...homePostFilter
+                });
+
+                // -------- BUILD WEIGHTED INTEREST TEXT --------
+                let interestText = "";
+
+                posts.forEach(post => {
+
+                    const title = post.title || "";
+                    const tags = (post.tags || []).join(" ");
+                    const categories = (post.categories || []).join(" ");
+
+                    interestText += `
+                        ${title} ${title} ${title}
+                        ${tags} ${tags}
+                        ${categories}
+                    `;
+                });
+
+                const response = await fetch(`${pythonServiceUrl}/recommend`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        interest_text: interestText
+                    })
+                });
+
+                const data = await response.json();
+
+                const recommendedIds = data.recommendations || [];
+
+                if (recommendedIds.length > 0) {
+
+                    recommendedPosts = await Post.find({
+                        _id: { $in: recommendedIds },
+                        ...homePostFilter
+                    })
+                    .limit(6)
+                    .populate('author', 'name profilePic email');
+
+                }
+            }
+        }
+
+        res.json({
             success: true,
             latestPosts,
+            recommendedPosts
         });
+
     } catch (error) {
-        console.error("Error fetching home latest post data:", error);
-        res.status(500).json({ success: false, message: "Server error while fetching home latest posts data." });
+
+        console.error("Latest posts error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
 });
 
 home_router.get('/randomPosts', async (req, res) => {
     try {
-        // Fetch 9 random posts
-        const randomPosts = await Post.aggregate([{ $sample: { size: 9 } }]);
+        const requestedLimit = Number.parseInt(req.query.limit, 10);
+        const sampleSize = Number.isFinite(requestedLimit)
+            ? Math.max(1, Math.min(requestedLimit, 70))
+            : 9;
+
+        // Fetch random published posts
+        const randomPosts = await Post.aggregate([
+            { $match: { status: 'publish' } },
+            { $sample: { size: sampleSize } }
+        ]);
         // Populate author for each post manually since .populate() does not work on aggregate
         const populatedRandomPosts = await Post.populate(randomPosts, { path: 'author', select: 'name profilePic email' });
         res.status(200).json({
@@ -42,16 +119,26 @@ home_router.get('/randomPosts', async (req, res) => {
 
 home_router.get('/categoryPosts', async (req, res) => {
     try {
-        // Fetch posts grouped by categories
-        const categoryPosts = await Post.aggregate([
-            { $unwind: '$categories' },
-            { $group: { _id: '$categories', posts: { $push: '$$ROOT' } } },
-            { $project: { _id: 0, category: '$_id', posts: { $slice: ['$posts', 6] } } }
-        ]);
-        // Populate author for each post in each category
-        for (const category of categoryPosts) {
-            category.posts = await Post.populate(category.posts, { path: 'author', select: 'name profilePic email' });
-        }
+        const categories = await Post.distinct('categories', { status: 'publish' });
+        const categoryPosts = await Promise.all(
+            categories.map(async (category) => {
+                const posts = await Post.aggregate([
+                    { $match: { status: 'publish', categories: category } },
+                    { $sample: { size: 6 } }
+                ]);
+
+                const populatedPosts = await Post.populate(posts, {
+                    path: 'author',
+                    select: 'name profilePic email'
+                });
+
+                return {
+                    category,
+                    posts: populatedPosts
+                };
+            })
+        );
+
         res.status(200).json({
             success: true,
             categoryPosts,

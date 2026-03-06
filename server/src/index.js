@@ -1,5 +1,4 @@
 import express from "express";
-console.log("[DEBUG] Server file loaded and logging is working");
 import dotenv from "dotenv";
 import mongoose from "mongoose"
 import auth_router from "./routes/auth.js";
@@ -21,20 +20,32 @@ const MongoDBStore = connectMongoDBSession(session);
 
 const app = express();
 
-app.set('trust proxy', 1);
+app.set("trust proxy", process.env.TRUST_PROXY || 1);
 
-app.use(cors({
-  origin: "https://blog-e5hb.vercel.app", // EXACT frontend URL
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+const mongoUri = process.env.MONGODB_URI;
+const sessionSecret = process.env.SESSION_SECRET;
+
+if (!mongoUri) {
+  throw new Error("MONGODB_URI is not set");
+}
+
+if (!sessionSecret) {
+  throw new Error("SESSION_SECRET is not set");
+}
+
+app.use(
+  cors({
+    origin: clientUrl,
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 const store = new MongoDBStore({
-  uri: "mongodb+srv://root:root@alokyadav.oameudm.mongodb.net/BLOGGING?retryWrites=true&w=majority&appName=ALOKYADAV",
+  uri: mongoUri,
   collection: "sessions"
 });
 
@@ -43,17 +54,19 @@ store.on('error', function (error) {
   console.log(error);
 });
 
+const isProduction = process.env.NODE_ENV === "production";
+
 app.use(session({
-  // FIXME: Use a real secret from your .env file
-  secret: 'this is a secret',
+  secret: sessionSecret,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    secure: true,
-    sameSite: "none"
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
   },
-  store: store,
-  resave: true,
-  saveUninitialized: true
+  store,
+  resave: false,
+  saveUninitialized: false
 }));
 
 app.use('/api/home', home_router);
@@ -65,11 +78,11 @@ app.use('/api', viewPost_router);
 app.use('/api/chatbot', chatbot_router);
 
 const PORT = process.env.PORT || 5000;
-mongoose.connect("mongodb+srv://root:root@alokyadav.oameudm.mongodb.net/BLOGGING?retryWrites=true&w=majority&appName=ALOKYADAV")
+mongoose.connect(mongoUri)
   .then(() => {
     console.log("Connected to Mongoose");
     app.listen(PORT, () => {
-      console.log(`server is running at http://localhost:${PORT}`);
+      console.log(`server is running on port ${PORT}`);
     });
   })
   .catch(err => {

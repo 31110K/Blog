@@ -8,24 +8,19 @@ const auth_router = express.Router();
 
 
 auth_router.post('/login', async (req, res) => {
-    console.log(req.url, req.method, "alok");
 
     const { email, password } = req.body;
 
     try {
         const user = await Users.findOne({ email });
 
-        console.log("[LOGIN] User found:", user);
         if (!user) {
-            console.log("[LOGIN] No user found with email:", email);
             return res.status(400).json({ message: "Wrong Credentials" });
         }
 
         const matches = await bcrypt.compare(password, user.password);
 
-        console.log("[LOGIN] Password match:", matches);
         if (!matches) {
-            console.log("[LOGIN] Password is incorrect for user:", email);
             return res.status(400).json({ message: "Wrong Credentials" });
         }
 
@@ -38,7 +33,6 @@ auth_router.post('/login', async (req, res) => {
                 console.error("Session save error:", err);
                 return res.status(500).json({ message: "Session save error" });
             }
-            console.log("[LOGIN] Session saved:", req.session);
             res.status(200).json({ success: true, message: "Login successful" });
         });
 
@@ -94,12 +88,9 @@ auth_router.post('/signup',
 
     async (req, res) => {
             try {
-                console.log("[SIGNUP] Method:", req.method, "URL:", req.url);
-                console.log("[SIGNUP] Body:", req.body);
 
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                    console.log("[SIGNUP] Validation errors:", errors.array());
                     return res.status(400).json({ errors: errors.array() });
             }
 
@@ -107,10 +98,8 @@ auth_router.post('/signup',
 
             const hashedPassword = await bcrypt.hash(password, 12);
             const user = new Users({ name, email, phone, password: hashedPassword, user_type });
-                console.log("[SIGNUP] New user object:", user);
 
             await user.save();
-                console.log("[SIGNUP] User saved successfully");
 
             return res.status(201).json({ success: true, message: "Signup successful" });
 
@@ -137,14 +126,21 @@ auth_router.get('/check', protectRoute, (req, res) => {
 
 auth_router.put('/updateProfile', protectRoute, async (req, res) => {
     try {
-        const { name, email, phone , profilePic, bio } = req.body;
+        const { name, email, phone , profilePic, bio, removeProfilePic } = req.body;
         // Validate input
         if (!name || !email || !phone) {
             return res.status(400).json({ success : false , message: "name , email and phone fields are required" });
         }
 
+        const updates = { name, email, phone, bio };
+        if (removeProfilePic === true) {
+            updates.profilePic = "";
+        } else if (typeof profilePic === "string") {
+            updates.profilePic = profilePic.trim();
+        }
+
         // Find user and update
-        const user = await Users.findByIdAndUpdate(req.user._id, { name, email, phone ,profilePic,bio}, { new: true });
+        const user = await Users.findByIdAndUpdate(req.user._id, updates, { new: true });
 
         if (!user) {
             return res.status(404).json({ success : false , message: "User not found" });

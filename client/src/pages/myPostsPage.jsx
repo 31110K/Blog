@@ -127,9 +127,6 @@ const MyPosts = () => {
       <div className="posts-wrapper">
         <div className="posts-header">
           <h1 className="posts-title">My Posts</h1>
-          <p className="posts-subtitle">
-            Manage and view all your published content
-          </p>
         </div>
 
         {myPosts.length > 0 ? (
