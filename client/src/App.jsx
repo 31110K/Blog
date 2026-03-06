@@ -39,7 +39,7 @@ function App() {
         <Route path="/createPost" element={authUser ? <CreatePost /> : <Navigate to="/login" replace />} />
         <Route path="/myPosts" element={authUser ? <MyPosts /> : <Navigate to="/login" replace />} />
         <Route path="/editPost/:postId" element={authUser ? <EditPost />  : <Navigate to="/login" replace />} />
-        <Route path="/viewPost/:postSlug" element={<ViewPost />} />
+        <Route path="/viewPost/:postSlug" element={authUser ? <ViewPost /> : <Navigate to="/login" replace />} />
         <Route path="/profile" element={authUser ? <Profile />  : <Navigate to="/login" replace />} />
         <Route path="/Profile" element={<Navigate to="/profile" replace />} />
       </Routes>

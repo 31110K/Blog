@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import "./cssfile/viewPost.css";
 import { ExternalLink } from "lucide-react";
 import { ToastContainer } from "react-toastify";
@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 
 const ViewPost = () => {
   const { postSlug } = useParams();
+  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -23,6 +24,12 @@ const ViewPost = () => {
       const res = await fetch(`https://blogging-82kn.onrender.com/api/viewPost/${postSlug}`, {
       credentials: "include",   // 🔥 THIS WAS MISSING
       });
+
+      if (res.status === 401) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
       const result = await res.json();
 
       // Debug: Log the entire response
