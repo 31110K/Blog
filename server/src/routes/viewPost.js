@@ -194,18 +194,6 @@ viewPost_router.get("/viewPost/:postSlug/similarPosts", async (req, res) => {
       console.error("Similar posts API error:", similarApiError);
     }
 
-    if (similarPosts.length === 0) {
-      similarPosts = await Post.find({
-        _id: { $ne: post._id },
-        categories: { $in: post.categories || [] },
-        status: "publish",
-      })
-        .sort({ createdAt: -1 })
-        .select("title slug featuredImage tags createdAt")
-        .populate("author", "name profilePic email")
-        .limit(6);
-    }
-
     res.status(200).json({ success: true, data: similarPosts });
   } catch (err) {
     console.error("Error fetching similar posts:", err);
