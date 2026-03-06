@@ -25,6 +25,7 @@ app.set("trust proxy", process.env.TRUST_PROXY || 1);
 const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 const mongoUri = process.env.MONGODB_URI;
 const sessionSecret = process.env.SESSION_SECRET;
+const isLocalClient = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(clientUrl);
 
 if (!mongoUri) {
   throw new Error("MONGODB_URI is not set");
@@ -54,15 +55,15 @@ store.on('error', function (error) {
   console.log(error);
 });
 
-const isProduction = process.env.NODE_ENV === "production";
-
 app.use(session({
   secret: sessionSecret,
+  proxy: true,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 7,
     httpOnly: true,
-    sameSite: isProduction ? "none" : "lax",
-    secure: isProduction,
+    // Cross-site cookies (Vercel -> Render) require SameSite=None + Secure.
+    sameSite: isLocalClient ? "lax" : "none",
+    secure: !isLocalClient,
   },
   store,
   resave: false,
